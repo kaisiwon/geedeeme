@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhythmic Dash</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #111;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        canvas {
+            background-color: #1a1a2e;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            border: 4px solid #333;
+        }
+        #instructions {
+            margin-top: 15px;
+            text-align: center;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <div id="instructions">
+        Press <strong>SPACE</strong> or <strong>CLICK</strong> to Jump.<br>
+        Dodge the spikes, jump on the blocks, and reach the end!
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // --- GAME SETTINGS & CONSTANTS ---
+        const TILE_SIZE = 40;
+        const GRAVITY = 0.8;
+        const JUMP_FORCE = -11;
+        const SPEED = 6.75; // Blocks per second (6.75 matches the previous speed of 4.5 pixels/frame)
+        
+        // --- LEVEL DATA ---
+        // 'X' = Block, '^' = Spike, '@' = Level End
+        const levelData = [
+            {
+                name: "Level 1: Techno Madness",
+                song: "Techno Madness", 
+                audioUrl: "file:///Users/kai/Downloads/Techno%20Rage.mp3",
+                bgColor: "#1a1a2e",
+                blockColor: "#0f3460",
+                layout: [
+                    "                                                                                           XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + "X".repeat(941) + "@",
+                    "                                                                                           XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + "X".repeat(942),
+                    "                                                 v   v                                     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + "X".repeat(942),
+                    "                                                 XXXXX                                        vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv" + "v".repeat(942),
+                    "                                                                                            B                                                                            " + " ".repeat(50) + " " + " ".repeat(891),
+                    "                                                 ^^^^^           XXXXX                       BYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBY" + "BY".repeat(75) + "CC" + "BY".repeat(395) + "B",
+                    "                                 ^^^             XXXXX           ,   ,                    Y                                                                              " + " ".repeat(942),
+                    "                                 XXX             XXXXX    O               XX  OOO           Y ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" + "^".repeat(942),
+                    "                XXXXX       XX           XX   ^           ^^            O ,C  ^^^       O^.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + "X".repeat(100) + "X".repeat(841),
+                    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + "X".repeat(942)
+                ]
+            },
+            {
+                name: "Level 2: Syncopated Doom",
+                audioUrl: "file:///Users/kai/Downloads/Adrenaline%20Rush.mp3",
+                bgColor: "#2e1a1a",
+                blockColor: "#600f0f",
+                layout: [
+                    "                                                                          B    ,,,,,,,,,,,,,,,,,,,,,@",
+                    "                                                                                                    ",
+                    "                                                                              YBYBYBYBYBYBYBYBYBYBYB",
+                    "                                                                                                    ",
+                    "                                                                         XXXX  ^^^^^^^^^^^^^^^^^^^^^",
+                    "                               O XX                XXX           >Y    XXXXXX XXXXXXXXXXXXXXXXXXXXXX",
+                    "                 O      O XXXX           XXXOXXOOXXXvX X O           XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                    "                   XXXX   ,vvv       XXX ,vv v XXXvv X X   XXXXXX XXXXXXXXXXX                       ",
+                    "             XXX^^.........^^...^^^^ ^........^^^^.^.^.X  ^^^v,v,v,^ XXXXXXXXXX ^^^     ^^^         ",
+                    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                ]
+            }
+        ];
+
+        // --- GAME STATE ---
+        let currentLevelIndex = 0;
+        let attempts = 1;
+        let gameState = "START"; // START, PLAYING, DEAD, COMPLETE, ALL_CLEAR
+        
+        let isHolding = false;
+        let player = {
+            x: 100,
+            y: 0,
+            w: 30,
+            h: 30,
+            dx: (SPEED * TILE_SIZE) / 60, // Convert blocks/sec to pixels/frame assuming 60 FPS
+            dy: 0,
+            grounded: false,
+            rotation: 0,
+            mode: 'cube',
+            gravity: 1
+        };
+
+        let cameraX = 0;
+        let obstacles = [];
+        let levelEnd = 0;
+        let coins = 0;
+        
+        // --- AUDIO SETUP ---
+        let bgMusic = new Audio();
+        bgMusic.loop = true;
+        let crashSound = new Audio("file:///Users/kai/Music/Music/Media.localized/Music/sekmun/Unknown%20Album/Make%20A%20Crashing%20Sound%20Effect,%20Like%20A%20Geometry%20Dash%20Character%20Has%20Crashed.mp3");
+
+        // --- LEVEL PARSER ---
+        function loadLevel(index) {
+            obstacles = [];
+            const layout = levelData[index].layout;
+            
+            // Set up level music
+            bgMusic.pause();
+            if (levelData[index].audioUrl) {
+                bgMusic.src = levelData[index].audioUrl;
+            } else {
+                bgMusic.removeAttribute('src');
+            }
+
+            for (let row = 0; row < layout.length; row++) {
+                for (let col = 0; col < layout[row].length; col++) {
+                    const char = layout[row][col];
+                    const x = col * TILE_SIZE;
+                    const y = row * TILE_SIZE;
+
+                    if (char === 'X') {
+                        obstacles.push({ type: 'block', x, y, w: TILE_SIZE, h: TILE_SIZE });
+                    } else if (char === '^') {
+                        obstacles.push({ type: 'spike', x, y, w: TILE_SIZE, h: TILE_SIZE });
+                    } else if (char === '.') {
+                        obstacles.push({ type: 'halfSpike', x, y: y + TILE_SIZE / 2, w: TILE_SIZE, h: TILE_SIZE / 2 });
+                    } else if (char === 'v') {
+                        obstacles.push({ type: 'spikeDown', x, y, w: TILE_SIZE, h: TILE_SIZE });
+                    } else if (char === ',') {
+                        obstacles.push({ type: 'halfSpikeDown', x, y, w: TILE_SIZE, h: TILE_SIZE / 2 });
+                    } else if (char === 'O') {
+                        obstacles.push({ type: 'orb', x, y, w: TILE_SIZE, h: TILE_SIZE });
+                    } else if (char === '>') {
+                        obstacles.push({ type: 'portalShip', x, y: y - TILE_SIZE, w: TILE_SIZE, h: TILE_SIZE * 3 });
+                    } else if (char === '<') {
+                        obstacles.push({ type: 'portalCube', x, y: y - TILE_SIZE, w: TILE_SIZE, h: TILE_SIZE * 3 });
+                    } else if (char === 'Y') {
+                        obstacles.push({ type: 'portalGravityInvert', x, y: y - TILE_SIZE, w: TILE_SIZE, h: TILE_SIZE * 3 });
+                    } else if (char === 'B') {
+                        obstacles.push({ type: 'portalGravityNormal', x, y: y - TILE_SIZE, w: TILE_SIZE, h: TILE_SIZE * 3 });
+                    } else if (char === 'P') {
+                        obstacles.push({ type: 'pad', x, y: y + TILE_SIZE * 0.75, w: TILE_SIZE, h: TILE_SIZE * 0.25 });
+                    } else if (char === 'R') {
+                        obstacles.push({ type: 'redPad', x, y: y + TILE_SIZE * 0.75, w: TILE_SIZE, h: TILE_SIZE * 0.25 });
+                    } else if (char === 'C') {
+                        obstacles.push({ type: 'coin', x, y: y + TILE_SIZE / 4, w: TILE_SIZE / 2, h: TILE_SIZE / 2, collected: false });
+                    } else if (char === '@') {
+                        levelEnd = x;
+                    }
+                }
+            }
+            resetPlayer();
+        }
+
+        function resetPlayer() {
+            player.x = 100;
+            player.y = 200;
+            player.dy = 0;
+            player.dx = (SPEED * TILE_SIZE) / 60;
+            player.rotation = 0;
+            player.mode = 'cube';
+            player.w = 30;
+            player.h = 30;
+            isHolding = false;
+            player.gravity = 1;
+            cameraX = 0;
+            coins = 0;
+            for (let obs of obstacles) {
+                if (obs.type === 'coin') obs.collected = false;
+            }
+        }
+
+        function die() {
+            if (gameState === "DEAD") return;
+            gameState = "DEAD";
+            attempts++;
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+            
+            crashSound.currentTime = 0;
+            crashSound.play().catch(e => console.log("Crash sound play failed", e));
+            
+            // Automatic respawn after 0.8 seconds
+            setTimeout(() => {
+                resetPlayer();
+                gameState = "PLAYING";
+                if (bgMusic.src) bgMusic.play().catch(e => console.log("Audio play failed", e));
+            }, 800);
+        }
+
+        function returnToMenu() {
+            gameState = "START";
+            bgMusic.pause();
+            bgMusic.src = "file:///Users/kai/Downloads/Title%20Theme.mp3";
+            bgMusic.play().catch(e => console.log("Menu music play failed", e));
+        }
+
+        // --- INPUT HANDLING ---
+        function jump() {
+            if (gameState === "COMPLETE" || gameState === "ALL_CLEAR") {
+                returnToMenu();
+            } else if (gameState === "PLAYING") {
+                if (player.mode === 'cube') {
+                    if (player.grounded) {
+                        player.dy = JUMP_FORCE * player.gravity;
+                        player.grounded = false;
+                    }
+                }
+            }
+        }
+
+        window.addEventListener("keydown", (e) => { 
+            if (e.code === "Space") { 
+                if (gameState === "START") {
+                    attempts = 1;
+                    loadLevel(currentLevelIndex);
+                    gameState = "PLAYING";
+                    if (bgMusic.src) bgMusic.play().catch(e => console.log("Audio play failed", e));
+                } else {
+                    isHolding = true; 
+                    jump(); 
+                }
+            }
+        });
+        window.addEventListener("keyup", (e) => { 
+            if (e.code === "Space") isHolding = false; 
+        });
+        window.addEventListener("mousedown", (e) => { 
+            if (gameState === "START") {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                for (let i = 0; i < levelData.length; i++) {
+                    const btnX = canvas.width / 2 - 150;
+                    const btnY = 140 + i * 60;
+                    if (mouseX >= btnX && mouseX <= btnX + 300 && mouseY >= btnY && mouseY <= btnY + 45) {
+                        currentLevelIndex = i;
+                        attempts = 1;
+                        loadLevel(currentLevelIndex);
+                        gameState = "PLAYING";
+                        if (bgMusic.src) bgMusic.play().catch(e => console.log("Audio play failed", e));
+                        return;
+                    }
+                }
+                // If clicked outside buttons, try to resume menu music if blocked
+                if (bgMusic.src && bgMusic.paused) bgMusic.play().catch(e => {});
+            } else {
+                isHolding = true; 
+                jump();
+            }
+        });
+        window.addEventListener("mouseup", () => { isHolding = false; });
+
+        // --- PHYSICS & COLLISION ---
+        function update() {
+            if (gameState !== "PLAYING") return;
+
+            // Apply gravity
+            if (player.mode === 'cube') {
+                player.dy += GRAVITY * player.gravity;
+            } else if (player.mode === 'ship') {
+                if (isHolding) player.dy -= 0.5 * player.gravity;
+                else player.dy += 0.5 * player.gravity;
+                player.dy = Math.max(-7, Math.min(7, player.dy)); // Terminal velocity
+            }
+            
+            // Save previous position for collision resolution
+            const prevY = player.y;
+            const prevX = player.x;
+
+            // Move player
+            player.x += player.dx;
+            player.y += player.dy;
+            cameraX = player.x - 150; // Keep player towards the left of the screen
+
+            player.grounded = false;
+
+            // Cube rotation logic (rotates in air, snaps when grounded)
+            if (player.mode === 'cube' && !player.grounded) {
+                player.rotation += 5 * player.gravity;
+            } else if (player.mode === 'ship') {
+                player.rotation = player.dy * 3 * player.gravity; // Tilt ship based on vertical speed
+            }
+
+            // Check collisions
+            for (let obs of obstacles) {
+                // AABB Collision bounds
+                let hitBox = { x: obs.x, y: obs.y, w: obs.w, h: obs.h };
+                
+                // Make spike hitboxes smaller to be fair
+                if (obs.type === 'spike') {
+                    hitBox = { x: obs.x + 10, y: obs.y + 15, w: obs.w - 20, h: obs.h - 15 };
+                } else if (obs.type === 'halfSpike') {
+                    hitBox = { x: obs.x + 10, y: obs.y + 10, w: obs.w - 20, h: obs.h - 10 };
+                } else if (obs.type === 'spikeDown') {
+                    hitBox = { x: obs.x + 10, y: obs.y, w: obs.w - 20, h: obs.h - 15 };
+                } else if (obs.type === 'halfSpikeDown') {
+                    hitBox = { x: obs.x + 10, y: obs.y, w: obs.w - 20, h: obs.h - 10 };
+                } else if (obs.type === 'orb') {
+                    hitBox = { x: obs.x - 15, y: obs.y - 15, w: obs.w + 30, h: obs.h + 30 };
+                }
+
+                // Check intersection
+                if (player.x < hitBox.x + hitBox.w && 
+                    player.x + player.w > hitBox.x && 
+                    player.y < hitBox.y + hitBox.h && 
+                    player.y + player.h > hitBox.y) {
+                    
+                    if (obs.type === 'orb') {
+                        if (player.mode === 'cube' && !obs.hit) {
+                            player.dy = JUMP_FORCE * player.gravity;
+                            player.grounded = false;
+                            obs.hit = true;
+                            setTimeout(() => obs.hit = false, 300); // Prevent multi-triggering
+                        }
+                        continue;
+                    } else if (obs.type === 'portalShip') {
+                        if (player.mode !== 'ship') {
+                            player.mode = 'ship';
+                            player.w = 45; // 3x width
+                            player.h = 15; // 1x height (1x3 aspect ratio)
+                            player.dy = 0; // Stabilize movement
+                        }
+                        continue;
+                    } else if (obs.type === 'portalCube') {
+                        if (player.mode !== 'cube') {
+                            player.mode = 'cube';
+                            player.w = 30; 
+                            player.h = 30; 
+                            player.rotation = Math.round(player.rotation / 90) * 90;
+                        }
+                        continue;
+                    } else if (obs.type === 'portalGravityInvert') {
+                        if (player.gravity !== -1) {
+                            player.gravity = -1;
+                            player.dy = -Math.abs(player.dy) * 0.5; // Slight push to the ceiling
+                        }
+                        continue;
+                    } else if (obs.type === 'portalGravityNormal') {
+                        if (player.gravity !== 1) {
+                            player.gravity = 1;
+                            player.dy = Math.abs(player.dy) * 0.5; // Slight push to the floor
+                        }
+                        continue;
+                    } else if (obs.type === 'pad') {
+                        if (!obs.hit) {
+                            player.y = player.gravity === 1 ? obs.y - player.h : obs.y + obs.h; // Snap above pad to prevent block overrides
+                            player.dy = JUMP_FORCE * 1.3 * player.gravity; // Give a stronger jump than normal
+                            player.grounded = false;
+                            obs.hit = true;
+                            setTimeout(() => obs.hit = false, 300);
+                        }
+                        continue;
+                    } else if (obs.type === 'redPad') {
+                        if (!obs.hit) {
+                            player.y = player.gravity === 1 ? obs.y - player.h : obs.y + obs.h; // Snap above pad to prevent block overrides
+                            player.dy = JUMP_FORCE * 2.2 * player.gravity; // Give an even stronger jump
+                            player.grounded = false;
+                            obs.hit = true;
+                            setTimeout(() => obs.hit = false, 300);
+                        }
+                        continue;
+                    } else if (obs.type === 'coin') {
+                        if (!obs.collected) {
+                            obs.collected = true;
+                            coins++;
+                        }
+                        continue;
+                    } else if (obs.type === 'spike' || obs.type === 'halfSpike' || obs.type === 'spikeDown' || obs.type === 'halfSpikeDown') {
+                        die();
+                        return;
+                    } else if (obs.type === 'block') {
+                        let landed = false;
+                        let hitCeiling = false;
+                        if (player.gravity === 1) {
+                            if (prevY + player.h <= obs.y) landed = true;
+                            else if (player.mode === 'ship' && prevY >= obs.y + obs.h) hitCeiling = true;
+                        } else {
+                            if (prevY >= obs.y + obs.h) landed = true;
+                            else if (player.mode === 'ship' && prevY + player.h <= obs.y) hitCeiling = true;
+                        }
+                        
+                        if (landed) {
+                            player.y = player.gravity === 1 ? obs.y - player.h : obs.y + obs.h;
+                            player.dy = 0;
+                            player.grounded = true;
+                            if (player.mode === 'cube') player.rotation = Math.round(player.rotation / 90) * 90;
+                        } else if (hitCeiling) {
+                            player.y = player.gravity === 1 ? obs.y + obs.h : obs.y - player.h;
+                            player.dy = 0;
+                        } else {
+                            die();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // Check Level End
+            if (player.x > levelEnd) {
+                gameState = "COMPLETE";
+                bgMusic.pause();
+            }
+            
+            // Screen Bounds (Floor & Ceiling)
+            if (player.gravity === 1) {
+                if (player.y > canvas.height) {
+                    if (player.mode === 'ship') { player.y = canvas.height - player.h; player.dy = 0; player.grounded = true; } else { die(); }
+                }
+                if (player.mode === 'ship' && player.y < 0) { player.y = 0; player.dy = 0; }
+            } else {
+                if (player.y + player.h < 0) {
+                    if (player.mode === 'ship') { player.y = 0; player.dy = 0; player.grounded = true; } else { die(); }
+                }
+                if (player.mode === 'ship' && player.y > canvas.height) { player.y = canvas.height - player.h; player.dy = 0; }
+            }
+        }
+
+        // --- RENDERING ---
+        function draw() {
+            const currentLevel = levelData[currentLevelIndex] || levelData[0];
+            
+            // Clear screen & draw background
+            ctx.fillStyle = currentLevel.bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate(-cameraX, 0);
+
+            // Draw obstacles
+            for (let obs of obstacles) {
+                // Only draw objects somewhat near the camera for performance
+                if (obs.x < cameraX - TILE_SIZE || obs.x > cameraX + canvas.width + TILE_SIZE) continue;
+
+                if (obs.type === 'block') {
+                    ctx.fillStyle = currentLevel.blockColor;
+                    ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
+                    
+                    // Pulse effect for blocks
+                    const pulse = Math.abs(Math.sin(Date.now() / 220));
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${0.3 + pulse * 0.7})`;
+                    ctx.lineWidth = 1 + pulse * 3;
+                    ctx.strokeRect(obs.x + pulse, obs.y + pulse, obs.w - pulse * 2, obs.h - pulse * 2);
+                } else if (obs.type === 'spike' || obs.type === 'halfSpike') {
+                    ctx.fillStyle = "#e94560"; // Red spikes
+                    ctx.beginPath();
+                    ctx.moveTo(obs.x + obs.w / 2, obs.y); // Top
+                    ctx.lineTo(obs.x + obs.w, obs.y + obs.h); // Bottom right
+                    ctx.lineTo(obs.x, obs.y + obs.h); // Bottom left
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                } else if (obs.type === 'spikeDown' || obs.type === 'halfSpikeDown') {
+                    ctx.fillStyle = "#e94560"; // Red spikes
+                    ctx.beginPath();
+                    ctx.moveTo(obs.x + obs.w / 2, obs.y + obs.h); // Bottom point
+                    ctx.lineTo(obs.x + obs.w, obs.y); // Top right
+                    ctx.lineTo(obs.x, obs.y); // Top left
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                } else if (obs.type === 'orb') {
+                    ctx.fillStyle = obs.hit ? "#fff" : "#f1c40f"; // Yellow orb, flashes white when activated
+                    ctx.beginPath();
+                    ctx.arc(obs.x + obs.w / 2, obs.y + obs.h / 2, obs.w / 2 - 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // Draw outer pulsing ring
+                    ctx.beginPath();
+                    ctx.arc(obs.x + obs.w / 2, obs.y + obs.h / 2, obs.w / 2, 0, Math.PI * 2);
+                    ctx.strokeStyle = "rgba(241, 196, 15, 0.5)";
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                } else if (obs.type === 'portalShip') {
+                    ctx.fillStyle = "rgba(255, 100, 200, 0.4)"; // Pink portal
+                    ctx.beginPath();
+                    ctx.ellipse(obs.x + obs.w / 2, obs.y + obs.h / 2, obs.w / 3, obs.h / 2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = "#ff00aa";
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                } else if (obs.type === 'portalCube') {
+                    ctx.fillStyle = "rgba(0, 255, 170, 0.4)"; // Green portal
+                    ctx.beginPath();
+                    ctx.ellipse(obs.x + obs.w / 2, obs.y + obs.h / 2, obs.w / 3, obs.h / 2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = "#00ffaa";
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                } else if (obs.type === 'portalGravityInvert') {
+                    ctx.fillStyle = "rgba(255, 255, 0, 0.4)"; // Yellow portal
+                    ctx.beginPath();
+                    ctx.ellipse(obs.x + obs.w / 2, obs.y + obs.h / 2, obs.w / 3, obs.h / 2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = "#ffff00";
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                } else if (obs.type === 'portalGravityNormal') {
+                    ctx.fillStyle = "rgba(0, 100, 255, 0.4)"; // Blue portal
+                    ctx.beginPath();
+                    ctx.ellipse(obs.x + obs.w / 2, obs.y + obs.h / 2, obs.w / 3, obs.h / 2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = "#0066ff";
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                } else if (obs.type === 'pad') {
+                    ctx.fillStyle = obs.hit ? "#fff" : "#f1c40f"; // Yellow pad
+                    ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
+                    
+                    // Inner line for detail
+                    ctx.beginPath();
+                    ctx.moveTo(obs.x + 5, obs.y + obs.h / 2);
+                    ctx.lineTo(obs.x + obs.w - 5, obs.y + obs.h / 2);
+                    ctx.strokeStyle = "#000";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else if (obs.type === 'redPad') {
+                    ctx.fillStyle = obs.hit ? "#fff" : "#e94560"; // Red pad
+                    ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
+                    
+                    // Inner line for detail
+                    ctx.beginPath();
+                    ctx.moveTo(obs.x + 5, obs.y + obs.h / 2);
+                    ctx.lineTo(obs.x + obs.w - 5, obs.y + obs.h / 2);
+                    ctx.strokeStyle = "#000";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else if (obs.type === 'coin' && !obs.collected) {
+                    ctx.fillStyle = "#ffdd00"; // Gold
+                    ctx.beginPath();
+                    ctx.arc(obs.x + obs.w / 2, obs.y + obs.h / 2, obs.w / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // Draw an inner 'C'
+                    ctx.fillStyle = "#fff";
+                    ctx.font = "bold 14px Arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("C", obs.x + obs.w / 2, obs.y + obs.h / 2);
+                    ctx.textBaseline = "alphabetic"; // Reset baseline
+                }
+            }
+
+            // Draw End Line
+            ctx.strokeStyle = "#00ffcc";
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.moveTo(levelEnd, 0);
+            ctx.lineTo(levelEnd, canvas.height);
+            ctx.stroke();
+
+            // Draw Player
+            if (gameState !== "DEAD") {
+                ctx.save();
+                // Move context to center of player to rotate correctly
+                ctx.translate(player.x + player.w / 2, player.y + player.h / 2);
+                ctx.rotate((player.rotation * Math.PI) / 180);
+                ctx.scale(1, player.gravity); // Flips the sprite upside down if gravity is inverted
+                
+                if (player.mode === 'cube') {
+                    ctx.fillStyle = "#00ffcc"; 
+                    ctx.fillRect(-player.w / 2, -player.h / 2, player.w, player.h);
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(-player.w / 2, -player.h / 2, player.w, player.h);
+                    
+                    // Draw a little face/eye on the cube
+                    ctx.fillStyle = "#000";
+                    ctx.fillRect(-5, -5, 10, 10);
+                } else if (player.mode === 'ship') {
+                    ctx.fillStyle = "#00ffcc"; 
+                    ctx.beginPath();
+                    ctx.moveTo(-player.w / 2, -player.h / 2); // Top left
+                    ctx.lineTo(player.w / 2, 0);              // Point
+                    ctx.lineTo(-player.w / 2, player.h / 2);  // Bottom left
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // Cockpit window
+                    ctx.fillStyle = "#000";
+                    ctx.fillRect(-player.w / 4, -player.h / 4, player.w / 3, player.h / 2);
+                }
+                
+                ctx.restore();
+            } else {
+                // Death explosion particles (simplified as scattered squares)
+                ctx.fillStyle = "#00ffcc";
+                ctx.fillRect(player.x - 10, player.y - 10, 10, 10);
+                ctx.fillRect(player.x + 30, player.y - 15, 8, 8);
+                ctx.fillRect(player.x - 5, player.y + 30, 12, 12);
+                ctx.fillRect(player.x + 25, player.y + 25, 9, 9);
+            }
+
+            ctx.restore();
+
+            // --- UI OVERLAYS ---
+            ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+            ctx.font = "20px Arial";
+            ctx.textAlign = "left";
+            
+            if (gameState === "PLAYING" || gameState === "DEAD") {
+                ctx.fillText(currentLevel.name, 20, 30);
+                ctx.font = "16px Arial";
+                ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+                ctx.fillText(currentLevel.song, 20, 50);
+                ctx.fillText(`Attempt: ${attempts}`, 20, 75);
+
+            // Progress Bar
+            const barWidth = 300;
+            const barHeight = 15;
+            const barX = (canvas.width - barWidth) / 2;
+            const barY = 20;
+            
+            // Calculate percentage complete (clamp between 0 and 1)
+            const progress = Math.max(0, Math.min(1, player.x / (levelEnd || 1)));
+            
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+            ctx.fillStyle = "#00ffcc"; 
+            ctx.fillRect(barX, barY, barWidth * progress, barHeight);
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(barX, barY, barWidth, barHeight);
+
+            // Draw Coins in Top Right
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.arc(canvas.width - 100 + (i * 30), 30, 10, 0, Math.PI * 2);
+                if (i < coins) {
+                    ctx.fillStyle = "#ffdd00";
+                    ctx.fill();
+                }
+                ctx.strokeStyle = "#ffdd00";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            }
+
+            // Game State Overlays
+            ctx.textAlign = "center";
+            if (gameState === "START") {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#fff";
+                ctx.font = "40px Arial";
+                ctx.fillText("RHYTHMIC DASH", canvas.width / 2, 80);
+                ctx.font = "16px Arial";
+                ctx.fillText("Select a level to start, or press Space to play Level 1", canvas.width / 2, 115);
+                
+                // Draw Level Buttons
+                levelData.forEach((lvl, i) => {
+                    const btnX = canvas.width / 2 - 150;
+                    const btnY = 140 + i * 60;
+                    
+                    ctx.fillStyle = "#222";
+                    ctx.fillRect(btnX, btnY, 300, 45);
+                    ctx.strokeStyle = "#00ffcc";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(btnX, btnY, 300, 45);
+                    
+                    ctx.fillStyle = "#fff";
+                    ctx.font = "20px Arial";
+                    ctx.fillText(lvl.name, canvas.width / 2, btnY + 28);
+                });
+            } else if (gameState === "COMPLETE") {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#00ffcc";
+                ctx.font = "40px Arial";
+                ctx.fillText("LEVEL COMPLETE!", canvas.width / 2, canvas.height / 2 - 20);
+                ctx.fillStyle = "#fff";
+                ctx.font = "20px Arial";
+                ctx.fillText(`Attempts: ${attempts}`, canvas.width / 2, canvas.height / 2 + 20);
+                ctx.fillText("Click or Press Space to Return to Menu", canvas.width / 2, canvas.height / 2 + 60);
+            } else if (gameState === "ALL_CLEAR") {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#ffcc00";
+                ctx.font = "40px Arial";
+                ctx.fillText("YOU BEAT THE GAME!", canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        // --- MAIN GAME LOOP ---
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize and start loop
+        loadLevel(0);
+        returnToMenu();
+        gameLoop();
+    </script>
+</body>
+</html>
