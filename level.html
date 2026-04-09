@@ -50,50 +50,119 @@
         
         // --- LEVEL DATA ---
         // 'X' = Block, '^' = Spike, '@' = Level End
-        const levelData = [
+        const levelCategories = [
             {
-                name: "Level 1: Techno Madness",
-                song: "Techno Madness", 
-                audioUrl: "file:///Users/kai/Downloads/Techno%20Rage.mp3",
-                bgColor: "#1a1a2e",
-                blockColor: "#0f3460",
-                layout: [
-                    "                                                                                           XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + "X".repeat(941) + "@",
-                    "                                                                                           XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + "X".repeat(942),
-                    "                                                 v   v                                     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + "X".repeat(942),
-                    "                                                 XXXXX                                        vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv" + "v".repeat(942),
-                    "                                                                                            B                                                                            " + " ".repeat(50) + " " + " ".repeat(891),
-                    "                                                 ^^^^^           XXXXX                       BYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBY" + "BY".repeat(75) + "CC" + "BY".repeat(395) + "B",
-                    "                                 ^^^             XXXXX           ,   ,                    Y                                                                              " + " ".repeat(942),
-                    "                                 XXX             XXXXX    O               XX  OOO           Y ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" + "^".repeat(942),
-                    "                XXXXX       XX           XX   ^           ^^            O ,C  ^^^       O^.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + "X".repeat(100) + "X".repeat(841),
-                    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + "X".repeat(942)
+                name: "Custom Levels",
+                levels: [
+                    {
+                        name: "Level 1: Techno Madness",
+                        song: "Techno Madness", 
+                        audioUrl: "file:///Users/kai/Downloads/Techno%20Rage.mp3",
+                        bgColor: "#1a1a2e",
+                        blockColor: "#0f3460",
+                        layout: [
+                            "                                                                                           XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @",
+                            "                                                                                           XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            " + "X".repeat(942),
+                            "                                                 v   v                                     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            " + "X".repeat(942),
+                            "                                                 XXXXX                                        vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            " + "v".repeat(942),
+                            "                                                                                            B                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        " + " ".repeat(50) + "C" + " ".repeat(891),
+                            "                                                 ^^^^^           XXXXX                       BYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBYBY                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            " + "BY".repeat(75) + "C" + "BY".repeat(395) + "B",
+                            "                                 ^^^             XXXXX           ,   ,                    Y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          " + " ".repeat(942),
+                            "                                 XXX             XXXXX    O               XX  OOO           Y ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            " + "^".repeat(942),
+                            "                XXXXX       XX           XX   ^           ^^            O ,C  ^^^       O^.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            " + "X".repeat(100) + "X".repeat(841),
+                            "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + "X".repeat(950)
+                        ]
+                    },
+                    {
+                        name: "Level 2: Syncopated Doom",
+                        audioUrl: "file:///Users/kai/Downloads/Adrenaline%20Rush.mp3",
+                        bgColor: "#2e1a1a",
+                        blockColor: "#600f0f",
+                        layout: [
+                            "                                                                          B    ,,,,,,,,,,,,,,,,,,,,,@",
+                            "                                                                                                    ",
+                            "                                                                              YBYBYBYBYBYBYBYBYBYBYB",
+                            "                                                                                                    ",
+                            "                                                                         XXXX  ^^^^^^^^^^^^^^^^^^^^^",
+                            "                               O XX                XXX           >Y    XXXXXX XXXXXXXXXXXXXXXXXXXXXX",
+                            "                 O      O XXXX           XXXOXXOOXXXvX X O           XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                            "                   XXXX   ,vvv       XXX ,vv v XXXvv X X   XXXXXX XXXXXXXXXXX                       ",
+                            "             XXX^^.........^^...^^^^ ^........^^^^.^.^.X  ^^^v,v,v,^ XXXXXXXXXX ^^^     ^^^         ",
+                            "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                        ]
+                    }
                 ]
             },
             {
-                name: "Level 2: Syncopated Doom",
-                audioUrl: "file:///Users/kai/Downloads/Adrenaline%20Rush.mp3",
-                bgColor: "#2e1a1a",
-                blockColor: "#600f0f",
-                layout: [
-                    "                                                                          B    ,,,,,,,,,,,,,,,,,,,,,@",
-                    "                                                                                                    ",
-                    "                                                                              YBYBYBYBYBYBYBYBYBYBYB",
-                    "                                                                                                    ",
-                    "                                                                         XXXX  ^^^^^^^^^^^^^^^^^^^^^",
-                    "                               O XX                XXX           >Y    XXXXXX XXXXXXXXXXXXXXXXXXXXXX",
-                    "                 O      O XXXX           XXXOXXOOXXXvX X O           XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-                    "                   XXXX   ,vvv       XXX ,vv v XXXvv X X   XXXXXX XXXXXXXXXXX                       ",
-                    "             XXX^^.........^^...^^^^ ^........^^^^.^.^.X  ^^^v,v,v,^ XXXXXXXXXX ^^^     ^^^         ",
-                    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                name: "The Originals",
+                levels: [
+                    {
+                        name: "1. Stereo Madness",
+                        song: "Stereo Madness",
+                        audioUrl: "",
+                        bgColor: "#2878ff",
+                        blockColor: "#003399",
+                        layout: [
+                            "                                                                                                                                                      @",
+                            "                                                                                                                                                       ",
+                            "                                                                                                                                                       ",
+                            "                                                                     XXXXXX          XXXXXX           XXXXXX                                           ",
+                            "                                                                                                                                                       ",
+                            "                                                 >                                                                       <                             ",
+                            "                                   XXX                 X                                                                                               ",
+                            "                  XXX     ^       XXXXX    ^   ^      XXX      ^^^             ^^              ^^^              ^^^              ^   ^                 ",
+                            "          ^      XXXXX   XXX     XXXXXXX  XXX XXX    XXXXX    XXXXX           XXXX            XXXXX            XXXXX            XXX XXX                ",
+                            "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                        ]
+                    },
+                    {
+                        name: "2. Back on Track",
+                        song: "Back on Track",
+                        audioUrl: "",
+                        bgColor: "#a328ff",
+                        blockColor: "#550099",
+                        layout: [
+                            "                                                                                                                                                      @",
+                            "                                                                                                                                                       ",
+                            "                                                                                                                                                       ",
+                            "                                                                                                                                                       ",
+                            "                                                                                                                                                       ",
+                            "                                         XXXX                                                                                                          ",
+                            "                                        XXXXXX         XXX                                                                                             ",
+                            "                  X  P    X  P         XXXXXXXX  P    XXXXX                                  P  XX      P  XX     P XX       XXX  P                    ",
+                            "          P      XXX     XXX          XXXXXXXXXX     XXXXXXX           ^   ^   ^            XXXXXX     XXXXXX     XXXX      XXXXX                    ",
+                            "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                        ]
+                    },
+                    {
+                        name: "3. Polargeist",
+                        song: "Polargeist",
+                        audioUrl: "",
+                        bgColor: "#28ff8c",
+                        blockColor: "#00994d",
+                        layout: [
+                            "                                                                                                                                                      @",
+                            "                                                                                                                                                       ",
+                            "                                                                                                                                                       ",
+                            "                                                                                                                                                       ",
+                            "                                                               O               O                                                                       ",
+                            "                                                                                                                                                       ",
+                            "                            O      XXX                                 O              XXXXX            O      XX                                       ",
+                            "                                  XXXXX           O                                  XXXXXXX                 XXXX                                      ",
+                            "             O           XXXXX   XXXXXXX                           XXX              XXXXXXXXX          XXXX XXXXX                                      ",
+                            "XXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXX   XXXXXXXX      XXXXXXXXXXXXX    XXXXXXXXXXXXXXXXX    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                        ]
+                    }
                 ]
             }
         ];
 
         // --- GAME STATE ---
+        let currentCategoryIndex = 0;
         let currentLevelIndex = 0;
         let attempts = 1;
         let gameState = "START"; // START, PLAYING, DEAD, COMPLETE, ALL_CLEAR
+        let menuState = "CATEGORY_SELECT"; // CATEGORY_SELECT, LEVEL_SELECT
         
         let isHolding = false;
         let player = {
@@ -120,14 +189,14 @@
         let crashSound = new Audio("file:///Users/kai/Music/Music/Media.localized/Music/sekmun/Unknown%20Album/Make%20A%20Crashing%20Sound%20Effect,%20Like%20A%20Geometry%20Dash%20Character%20Has%20Crashed.mp3");
 
         // --- LEVEL PARSER ---
-        function loadLevel(index) {
+        function loadLevel(catIndex, lvlIndex) {
             obstacles = [];
-            const layout = levelData[index].layout;
+            const layout = levelCategories[catIndex].levels[lvlIndex].layout;
             
             // Set up level music
             bgMusic.pause();
-            if (levelData[index].audioUrl) {
-                bgMusic.src = levelData[index].audioUrl;
+            if (levelCategories[catIndex].levels[lvlIndex].audioUrl) {
+                bgMusic.src = levelCategories[catIndex].levels[lvlIndex].audioUrl;
             } else {
                 bgMusic.removeAttribute('src');
             }
@@ -210,6 +279,7 @@
 
         function returnToMenu() {
             gameState = "START";
+            menuState = "CATEGORY_SELECT";
             bgMusic.pause();
             bgMusic.src = "file:///Users/kai/Downloads/Title%20Theme.mp3";
             bgMusic.play().catch(e => console.log("Menu music play failed", e));
@@ -232,10 +302,14 @@
         window.addEventListener("keydown", (e) => { 
             if (e.code === "Space") { 
                 if (gameState === "START") {
-                    attempts = 1;
-                    loadLevel(currentLevelIndex);
-                    gameState = "PLAYING";
-                    if (bgMusic.src) bgMusic.play().catch(e => console.log("Audio play failed", e));
+                    if (menuState === "CATEGORY_SELECT") {
+                        menuState = "LEVEL_SELECT";
+                    } else if (menuState === "LEVEL_SELECT") {
+                        attempts = 1;
+                        loadLevel(currentCategoryIndex, currentLevelIndex);
+                        gameState = "PLAYING";
+                        if (bgMusic.src) bgMusic.play().catch(e => console.log("Audio play failed", e));
+                    }
                 } else {
                     isHolding = true; 
                     jump(); 
@@ -251,16 +325,35 @@
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
                 
-                for (let i = 0; i < levelData.length; i++) {
-                    const btnX = canvas.width / 2 - 150;
-                    const btnY = 140 + i * 60;
-                    if (mouseX >= btnX && mouseX <= btnX + 300 && mouseY >= btnY && mouseY <= btnY + 45) {
-                        currentLevelIndex = i;
-                        attempts = 1;
-                        loadLevel(currentLevelIndex);
-                        gameState = "PLAYING";
-                        if (bgMusic.src) bgMusic.play().catch(e => console.log("Audio play failed", e));
+                if (menuState === "CATEGORY_SELECT") {
+                    for (let i = 0; i < levelCategories.length; i++) {
+                        const btnX = canvas.width / 2 - 150;
+                        const btnY = 140 + i * 60;
+                        if (mouseX >= btnX && mouseX <= btnX + 300 && mouseY >= btnY && mouseY <= btnY + 45) {
+                            currentCategoryIndex = i;
+                            menuState = "LEVEL_SELECT";
+                            return;
+                        }
+                    }
+                } else if (menuState === "LEVEL_SELECT") {
+                    // Check Back Button
+                    if (mouseX >= 20 && mouseX <= 100 && mouseY >= 20 && mouseY <= 50) {
+                        menuState = "CATEGORY_SELECT";
                         return;
+                    }
+
+                    const levels = levelCategories[currentCategoryIndex].levels;
+                    for (let i = 0; i < levels.length; i++) {
+                        const btnX = canvas.width / 2 - 150;
+                        const btnY = 140 + i * 60;
+                        if (mouseX >= btnX && mouseX <= btnX + 300 && mouseY >= btnY && mouseY <= btnY + 45) {
+                            currentLevelIndex = i;
+                            attempts = 1;
+                            loadLevel(currentCategoryIndex, currentLevelIndex);
+                            gameState = "PLAYING";
+                            if (bgMusic.src) bgMusic.play().catch(e => console.log("Audio play failed", e));
+                            return;
+                        }
                     }
                 }
                 // If clicked outside buttons, try to resume menu music if blocked
@@ -439,7 +532,7 @@
 
         // --- RENDERING ---
         function draw() {
-            const currentLevel = levelData[currentLevelIndex] || levelData[0];
+            const currentLevel = levelCategories[currentCategoryIndex]?.levels[currentLevelIndex] || levelCategories[0].levels[0];
             
             // Clear screen & draw background
             ctx.fillStyle = currentLevel.bgColor;
@@ -694,24 +787,53 @@
                 ctx.fillStyle = "#fff";
                 ctx.font = "40px Arial";
                 ctx.fillText("RHYTHMIC DASH", canvas.width / 2, 80);
-                ctx.font = "16px Arial";
-                ctx.fillText("Select a level to start, or press Space to play Level 1", canvas.width / 2, 115);
                 
-                // Draw Level Buttons
-                levelData.forEach((lvl, i) => {
-                    const btnX = canvas.width / 2 - 150;
-                    const btnY = 140 + i * 60;
+                if (menuState === "CATEGORY_SELECT") {
+                    ctx.font = "16px Arial";
+                    ctx.fillText("Select a Category", canvas.width / 2, 115);
                     
-                    ctx.fillStyle = "#222";
-                    ctx.fillRect(btnX, btnY, 300, 45);
-                    ctx.strokeStyle = "#00ffcc";
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(btnX, btnY, 300, 45);
+                    // Draw Category Buttons
+                    levelCategories.forEach((cat, i) => {
+                        const btnX = canvas.width / 2 - 150;
+                        const btnY = 140 + i * 60;
+                        
+                        ctx.fillStyle = "#222";
+                        ctx.fillRect(btnX, btnY, 300, 45);
+                        ctx.strokeStyle = "#00ffcc";
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(btnX, btnY, 300, 45);
+                        
+                        ctx.fillStyle = "#fff";
+                        ctx.font = "20px Arial";
+                        ctx.fillText(cat.name, canvas.width / 2, btnY + 28);
+                    });
+                } else if (menuState === "LEVEL_SELECT") {
+                    ctx.font = "16px Arial";
+                    ctx.fillText(levelCategories[currentCategoryIndex].name + " - Select a Level", canvas.width / 2, 115);
                     
+                    // Draw Back Button
+                    ctx.fillStyle = "#e94560";
+                    ctx.fillRect(20, 20, 80, 30);
                     ctx.fillStyle = "#fff";
-                    ctx.font = "20px Arial";
-                    ctx.fillText(lvl.name, canvas.width / 2, btnY + 28);
-                });
+                    ctx.font = "16px Arial";
+                    ctx.fillText("Back", 60, 41);
+                    
+                    // Draw Level Buttons
+                    levelCategories[currentCategoryIndex].levels.forEach((lvl, i) => {
+                        const btnX = canvas.width / 2 - 150;
+                        const btnY = 140 + i * 60;
+                        
+                        ctx.fillStyle = "#222";
+                        ctx.fillRect(btnX, btnY, 300, 45);
+                        ctx.strokeStyle = "#00ffcc";
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(btnX, btnY, 300, 45);
+                        
+                        ctx.fillStyle = "#fff";
+                        ctx.font = "20px Arial";
+                        ctx.fillText(lvl.name, canvas.width / 2, btnY + 28);
+                    });
+                }
             } else if (gameState === "COMPLETE") {
                 ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -739,7 +861,7 @@
         }
 
         // Initialize and start loop
-        loadLevel(0);
+        loadLevel(0, 0);
         returnToMenu();
         gameLoop();
     </script>
